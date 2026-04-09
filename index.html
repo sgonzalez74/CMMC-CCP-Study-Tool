@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMMC CCP Exam Study Tool</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#242836;--surface3:#2e3344;
+  --border:#353a4f;--text:#e2e4ea;--text2:#9ca0b0;--text3:#6b7084;
+  --accent:#6c8aff;--accent2:#4a6adf;--green:#34d399;--red:#f87171;
+  --orange:#fbbf24;--cyan:#22d3ee;--purple:#a78bfa;
+}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+.btn{padding:10px 20px;border-radius:8px;font-size:.9rem;font-weight:600;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-success{background:var(--green);color:#000}.btn-danger{background:var(--red);color:#fff}
+.btn-warn{background:var(--orange);color:#000}
+.btn-sm{padding:6px 14px;font-size:.8rem}
+
+/* Layout */
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.app-header h1{font-size:1.1rem;color:var(--accent);letter-spacing:.5px}
+.back-btn{color:var(--text2);background:none;font-size:.85rem;display:flex;align-items:center;gap:6px}.back-btn:hover{color:var(--accent)}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.view{display:none}.view.active{display:block}
+
+/* Dashboard */
+.dash-header{text-align:center;margin-bottom:40px}
+.dash-header h2{font-size:2rem;margin-bottom:8px}
+.dash-header p{color:var(--text2);font-size:1rem}
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.mode-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;transition:all .25s;cursor:pointer;position:relative;overflow:hidden}
+.mode-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 30px rgba(108,138,255,.12)}
+.mode-card .mode-num{font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.mode-card h3{font-size:1.15rem;margin-bottom:8px}
+.mode-card p{color:var(--text2);font-size:.85rem;line-height:1.6}
+.mode-card .mode-icon{font-size:2rem;margin-bottom:12px}
+.mode-card .weight-badge{position:absolute;top:16px;right:16px;background:var(--surface3);color:var(--accent);font-size:.7rem;padding:4px 10px;border-radius:20px;font-weight:600}
+
+/* Quick Stats */
+.quick-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:40px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.stat-card .stat-val{font-size:1.5rem;font-weight:700;color:var(--accent)}
+.stat-card .stat-label{font-size:.75rem;color:var(--text2);margin-top:4px}
+
+/* Regulatory Chain */
+.reg-chain{display:flex;flex-direction:column;gap:0;align-items:center;margin:20px auto;max-width:700px}
+.reg-node{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:18px 24px;width:100%;cursor:pointer;transition:all .2s;position:relative}
+.reg-node:hover,.reg-node.active{border-color:var(--accent);box-shadow:0 0 20px rgba(108,138,255,.15)}
+.reg-node .node-label{font-size:1rem;font-weight:700;color:var(--accent)}
+.reg-node .node-name{font-size:.78rem;color:var(--text2);margin-top:2px}
+.reg-connector{width:2px;height:28px;background:var(--border);position:relative}
+.reg-connector::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid var(--border)}
+.reg-detail{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:20px}
+.reg-detail h3{color:var(--accent);margin-bottom:8px;font-size:1.05rem}
+.reg-detail p{color:var(--text2);font-size:.88rem;margin-bottom:16px;line-height:1.7}
+.reg-detail .key-facts{list-style:none;padding:0}
+.reg-detail .key-facts li{color:var(--text);font-size:.85rem;padding:6px 0 6px 20px;position:relative}
+.reg-detail .key-facts li::before{content:'';position:absolute;left:0;top:12px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.quiz-box{background:var(--surface3);border-radius:10px;padding:20px;margin-top:16px}
+.quiz-box h4{color:var(--orange);font-size:.85rem;margin-bottom:10px}
+.quiz-box p{font-size:.9rem;margin-bottom:12px}
+.quiz-answer{display:none;background:var(--surface);border-radius:8px;padding:14px;margin-top:10px;color:var(--green);font-size:.88rem;line-height:1.6}
+
+/* Assessment Simulator */
+.scenario-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px}
+.scenario-box h3{color:var(--cyan);margin-bottom:10px}
+.scenario-box p{color:var(--text2);font-size:.9rem;line-height:1.7}
+.practice-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.practice-card .practice-id{color:var(--accent);font-size:.8rem;font-weight:600}
+.practice-card h4{font-size:1rem;margin:6px 0}
+.practice-card .requirement{color:var(--text2);font-size:.88rem;margin-bottom:16px;line-height:1.6}
+.practice-card .objectives{list-style:none;padding:0;margin-bottom:16px}
+.practice-card .objectives li{font-size:.82rem;color:var(--text2);padding:4px 0 4px 18px;position:relative}
+.practice-card .objectives li::before{content:'';position:absolute;left:0;top:10px;width:6px;height:6px;border-radius:50%;background:var(--text3)}
+.scoring-btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.scoring-btns .btn{flex:1;min-width:80px}
+.scoring-btns .btn.selected-met{background:var(--green);color:#000}
+.scoring-btns .btn.selected-notmet{background:var(--red);color:#fff}
+.scoring-btns .btn.selected-na{background:var(--orange);color:#000}
+.justification-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:.85rem;resize:vertical;min-height:60px;font-family:inherit}
+.justification-input:focus{border-color:var(--accent);outline:none}
+.progress-bar-wrap{background:var(--surface3);border-radius:20px;height:8px;margin:20px 0;overflow:hidden}
+.progress-bar-fill{height:100%;background:var(--accent);border-radius:20px;transition:width .3s}
+.results-summary{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:24px}
+.results-summary h3{margin-bottom:16px}
+.result-item{padding:12px 0;border-bottom:1px solid var(--border);display:flex;gap:16px;align-items:flex-start}
+.result-item:last-child{border-bottom:none}
+.result-badge{font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+.result-badge.met{background:rgba(52,211,153,.15);color:var(--green)}
+.result-badge.notmet{background:rgba(248,113,113,.15);color:var(--red)}
+.result-badge.na{background:rgba(251,191,36,.15);color:var(--orange)}
+
+/* Flashcards */
+.fc-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.fc-stats{display:flex;gap:16px}
+.fc-stats span{font-size:.85rem;color:var(--text2)}
+.fc-stats span b{color:var(--text)}
+.flashcard{background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:40px 32px;min-height:250px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;cursor:pointer;transition:all .3s;position:relative}
+.flashcard:hover{border-color:var(--accent)}
+.flashcard .fc-domain{position:absolute;top:16px;left:20px;font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.flashcard .fc-num{position:absolute;top:16px;right:20px;font-size:.7rem;color:var(--text3)}
+.flashcard .fc-question{font-size:1.1rem;line-height:1.7;max-width:600px}
+.flashcard .fc-answer{font-size:.95rem;color:var(--green);line-height:1.7;max-width:600px;display:none}
+.flashcard .fc-hint{font-size:.75rem;color:var(--text3);margin-top:20px}
+.fc-actions{display:flex;gap:12px;margin-top:20px;justify-content:center}
+
+/* Progress Tracker */
+.domain-progress-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.domain-prog-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.domain-prog-card h4{font-size:.95rem;margin-bottom:4px}
+.domain-prog-card .weight{color:var(--text3);font-size:.75rem;margin-bottom:12px}
+.prog-bar{background:var(--surface3);border-radius:10px;height:10px;overflow:hidden;margin-bottom:8px}
+.prog-bar-inner{height:100%;border-radius:10px;transition:width .4s}
+.prog-stats{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text2)}
+.history-section{margin-top:32px}
+.history-section h3{margin-bottom:16px}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.history-item .score{font-weight:700}
+.history-item .date{color:var(--text3);font-size:.8rem}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state p{margin-top:8px;font-size:.9rem}
+
+/* Responsive */
+@media(max-width:640px){
+  .container{padding:16px}
+  .mode-grid{grid-template-columns:1fr}
+  .flashcard{padding:30px 20px;min-height:200px}
+  .scoring-btns{flex-direction:column}
+  .scoring-btns .btn{min-width:100%}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>CMMC CCP Study Tool</h1>
+  <button class="back-btn" id="backBtn" style="display:none" onclick="showDashboard()">&#8592; Dashboard</button>
+</header>
+
+<div class="container">
+  <!-- DASHBOARD -->
+  <div class="view active" id="dashboard">
+    <div class="dash-header">
+      <h2>CCP Exam Prep</h2>
+      <p>Master the CMMC Certified Professional exam across all six domains</p>
+    </div>
+    <div class="quick-stats" id="quickStats"></div>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="showView('regchain')">
+        <div class="mode-num">Mode 1</div>
+        <div class="mode-icon">&#128279;</div>
+        <h3>Regulatory Chain Explorer</h3>
+        <p>Interactive visual diagram of the CMMC document hierarchy. Click any node to explore and quiz yourself.</p>
+        <span class="weight-badge">Domain 3 &middot; 15%</span>
+      </div>
+      <div class="mode-card" onclick="showView('simulator')">
+        <div class="mode-num">Mode 2</div>
+        <div class="mode-icon">&#128203;</div>
+        <h3>Level 1 Assessment Simulator</h3>
+        <p>Evaluate a fictional company against all 15 Level 1 practices. Score MET, NOT MET, or N/A with justification.</p>
+        <span class="weight-badge">Domain 4 &middot; 35%</span>
+      </div>
+      <div class="mode-card" onclick="showView('flashcards')">
+        <div class="mode-num">Mode 3</div>
+        <div class="mode-icon">&#9889;</div>
+        <h3>Flashcard Gauntlet</h3>
+        <p>Spaced repetition flashcards weighted by exam percentage. Drills your weak spots across all domains.</p>
+        <span class="weight-badge">All Domains</span>
+      </div>
+      <div class="mode-card" onclick="showView('progress')">
+        <div class="mode-num">Mode 4</div>
+        <div class="mode-icon">&#128200;</div>
+        <h3>Domain Progress Tracker</h3>
+        <p>Dashboard of study progress, flashcard completion, and assessment scores over time.</p>
+        <span class="weight-badge">Overview</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE 1: REGULATORY CHAIN -->
+  <div class="view" id="regchain">
+    <h2 style="margin-bottom:8px">Regulatory Chain Explorer</h2>
+    <p style="color:var(--text2);margin-bottom:24px;font-size:.9rem">Click any document node to see its description, key facts, and a quiz question.</p>
+    <div class="reg-chain" id="regChainContainer"></div>
+    <div id="regDetail" style="display:none"></div>
+  </div>
+
+  <!-- MODE 2: ASSESSMENT SIMULATOR -->
+  <div class="view" id="simulator">
+    <h2 style="margin-bottom:8px">Level 1 Assessment Simulator</h2>
+    <p style="color:var(--text2);margin-bottom:24px;font-size:.9rem">Evaluate each practice for the scenario below. Mark MET, NOT MET, or N/A with justification.</p>
+    <div id="simScenario"></div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="simProgress" style="width:0%"></div></div>
+    <p style="font-size:.8rem;color:var(--text3);margin-bottom:20px" id="simProgressText">Practice 0 of 15</p>
+    <div id="simPractices"></div>
+    <div id="simResults" style="display:none"></div>
+  </div>
+
+  <!-- MODE 3: FLASHCARDS -->
+  <div class="view" id="flashcards">
+    <h2 style="margin-bottom:8px">Flashcard Gauntlet</h2>
+    <p style="color:var(--text2);margin-bottom:20px;font-size:.9rem">Cards weighted by exam percentage. Mark known or unknown — weak spots get drilled harder.</p>
+    <div class="fc-controls">
+      <div class="fc-stats">
+        <span>Remaining: <b id="fcRemaining">0</b></span>
+        <span>Known: <b id="fcKnown" style="color:var(--green)">0</b></span>
+        <span>Unknown: <b id="fcUnknown" style="color:var(--red)">0</b></span>
+        <span>Streak: <b id="fcStreak" style="color:var(--orange)">0</b></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="resetFlashcards()">Reset</button>
+        <select id="fcDomainFilter" class="btn btn-ghost btn-sm" onchange="filterFlashcards()" style="background:var(--surface);color:var(--text)">
+          <option value="all">All Domains</option>
+          <option value="1">D1: Ecosystem (5%)</option>
+          <option value="2">D2: Ethics (5%)</option>
+          <option value="3">D3: Governance (15%)</option>
+          <option value="4">D4: Model/L1 (35%)</option>
+          <option value="5">D5: CAP (25%)</option>
+          <option value="6">D6: Scoping (15%)</option>
+        </select>
+      </div>
+    </div>
+    <div id="fcCard"></div>
+    <div class="fc-actions" id="fcActions" style="display:none">
+      <button class="btn btn-danger" onclick="markFlashcard(false)">&#10007; Don't Know</button>
+      <button class="btn btn-ghost" onclick="flipFlashcard()">Flip Card</button>
+      <button class="btn btn-success" onclick="markFlashcard(true)">&#10003; Know It</button>
+    </div>
+    <div id="fcComplete" style="display:none" class="empty-state">
+      <h3 style="color:var(--green)">Gauntlet Complete!</h3>
+      <p>Review your weak spots below or reset to go again.</p>
+      <div id="fcWeakList" style="margin-top:20px;text-align:left"></div>
+    </div>
+  </div>
+
+  <!-- MODE 4: PROGRESS TRACKER -->
+  <div class="view" id="progress">
+    <h2 style="margin-bottom:8px">Domain Progress Tracker</h2>
+    <p style="color:var(--text2);margin-bottom:24px;font-size:.9rem">Your study progress across all domains and modes.</p>
+    <div class="domain-progress-grid" id="domainProgressGrid"></div>
+    <div class="history-section">
+      <h3>Assessment Simulator History</h3>
+      <div id="simHistory"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA LAYER — all six domain JSONs embedded
+// ============================================================
+const DOMAINS = {};
+
+DOMAINS[1] = {"domain":1,"title":"CMMC Ecosystem","exam_weight":"5%","flashcards":[{"id":"d1_001","question":"What is the difference between an RPO and a C3PAO?","answer":"RPOs help OSCs prepare for assessments \u2014 they advise, consult, and implement. C3PAOs conduct the official assessments. RPOs get you ready, C3PAOs determine if you are ready."},{"id":"d1_002","question":"What can a Registered Practitioner NOT do?","answer":"RPs cannot participate in certified CMMC assessments. They are implementers and consultants only."},{"id":"d1_003","question":"What credential must you hold before pursuing CCA or CCI certification?","answer":"CCP \u2014 Certified CMMC Professional. It is a prerequisite for both CCA and CCI."},{"id":"d1_004","question":"What is the difference between CCP, CCA, and Lead Assessor on an assessment team?","answer":"CCP assists. CCA assesses and makes scoring determinations. Lead Assessor leads the team, makes final scoring decisions, and submits the final report."},{"id":"d1_005","question":"Who accredits C3PAOs?","answer":"The CMMC-AB \u2014 Cybersecurity Maturity Model Certification Accreditation Body."},{"id":"d1_006","question":"What is the difference between an LPP and an LTP?","answer":"LPPs develop and publish training content. LTPs deliver that training to candidates. LPPs create the curriculum, LTPs teach it."},{"id":"d1_007","question":"Who conducts Level 3 CMMC assessments?","answer":"DCMA DIBCAC \u2014 the Defense Contract Management Agency\u2019s Defense Industrial Base Cybersecurity Assessment Center."},{"id":"d1_008","question":"What are Provisional Assessors and Provisional Instructors?","answer":"Legacy credentials from the early CMMC program that are being sunset as the CCP/CCA/CCI pathway matures."},{"id":"d1_009","question":"What is an OSC?","answer":"Organization Seeking Certification \u2014 a defense contractor pursuing CMMC certification to be eligible for DoD contracts requiring it. Also called OSA (Organization Seeking Assessment)."},{"id":"d1_010","question":"What is the OUSD\u2019s role in the CMMC ecosystem?","answer":"The DoD authority responsible for CMMC policy. Establishes cybersecurity standards, maps controls across levels, and is responsible for DFARS 252.204-7012."}]};
+
+DOMAINS[2] = {"domain":2,"title":"CMMC-AB Code of Professional Conduct","exam_weight":"5%","flashcards":[{"id":"d2_001","question":"What must an assessor do if they have a conflict of interest with an OSC they are assigned to assess?","answer":"Disclose the conflict and recuse themselves from the assessment. Objectivity cannot be compromised."},{"id":"d2_002","question":"What does confidentiality require of a CMMC assessor after an assessment is complete?","answer":"NDA obligations persist after the assessment. Assessment findings, system details, and evidence obtained during the assessment cannot be disclosed to unauthorized parties even after the engagement ends."},{"id":"d2_003","question":"An OSC\u2019s leadership pressures an assessor to change a NOT MET finding to MET. What should the assessor do?","answer":"Maintain the NOT MET finding. Objectivity and information integrity require accurate findings regardless of pressure from the OSC."},{"id":"d2_004","question":"What is the relationship between ISO/IEC standards and the CMMC-AB CoPC?","answer":"ISO/IEC standards provide the international framework for assessment body conduct. The CoPC is the CMMC-specific implementation of those standards."},{"id":"d2_005","question":"What are the nine guiding principles of the CMMC-AB Code of Professional Conduct?","answer":"Professionalism, Objectivity, Confidentiality, Proper Use of Methods, Information Integrity, Conflicts of Interest, Respect for Intellectual Property, Lawful and Ethical Practices, Contracts and Non-Disclosure Agreements."},{"id":"d2_006","question":"What constitutes a conflict of interest for a CMMC assessor?","answer":"Any personal, financial, or professional relationship that could compromise objectivity \u2014 including previously working for the OSC as a consultant or having a financial stake in a competing organization."},{"id":"d2_007","question":"What does information integrity require during an assessment?","answer":"Assessment findings and evidence must be accurate and complete. Falsifying, omitting, or manipulating findings is a serious violation of the CoPC."},{"id":"d2_008","question":"What is the purpose of a Non-Disclosure Agreement in the CMMC assessment context?","answer":"Formalizes the confidentiality obligation between the assessor and the OSC. Protects sensitive system information obtained during the assessment. Obligations persist after the assessment is complete."}]};
+
+DOMAINS[3] = {"domain":3,"title":"CMMC Governance and Source Documents","exam_weight":"15%","regulatory_chain":[{"id":"eo13556","label":"EO 13556","full_name":"Executive Order 13556 (2010)","position":1,"connects_to":"32cfr2002","description":"Signed by President Obama in 2010. Solved the problem of inconsistent labeling and handling of sensitive unclassified information across federal agencies. Created the CUI program to standardize how that information is categorized, marked, and protected government-wide. Designated NARA as the Executive Agent responsible for overseeing the CUI program.","key_facts":["Created the CUI program","Designated NARA as Executive Agent","Directed creation of 32 CFR Part 2002","Solved inconsistent agency labeling/handling of sensitive unclassified info"]},{"id":"32cfr2002","label":"32 CFR Part 2002","full_name":"Title 32 Code of Federal Regulations Part 2002","position":2,"connects_to":"dodi520048","description":"The implementing regulation that EO 13556 ordered to be written. Operationalizes the CUI program government-wide \u2014 defining what CUI is, how it must be handled, marked, safeguarded, and shared across the federal government and its contractors.","key_facts":["Implements EO 13556","Applies government-wide, including contractors","Defines CUI Basic vs CUI Specified","NARA administers the CUI Registry under this regulation"]},{"id":"dodi520048","label":"DoDI 5200.48","full_name":"Department of Defense Instruction 5200.48","position":3,"connects_to":"dfars7012","description":"DoD\u2019s internal instruction that implements 32 CFR Part 2002 specifically within the Department of Defense. Defines contractor and authorized holder responsibilities for handling CUI within the DoD context.","key_facts":["DoD-specific implementation of 32 CFR Part 2002","Defines DoD contractor CUI handling responsibilities","Subordinate to 32 CFR Part 2002"]},{"id":"dfars7012","label":"DFARS 252.204-7012","full_name":"Defense Federal Acquisition Regulation Supplement Clause 252.204-7012","position":4,"connects_to":"dfars7019","description":"The foundational DFARS cybersecurity clause. Requires contractors to implement NIST SP 800-171 to protect CUI, report cyber incidents to DoD within 72 hours, and maintain a medium assurance certificate. Created the original contractual obligation to implement 800-171.","key_facts":["Requires implementation of NIST SP 800-171","72-hour cyber incident reporting requirement","Created original obligation to protect CUI on contractor systems","No verification mechanism \u2014 that came later"]},{"id":"dfars7019","label":"DFARS 252.204-7019","full_name":"Defense Federal Acquisition Regulation Supplement Clause 252.204-7019","position":5,"connects_to":"dfars7020","description":"Requires contractors to complete a self-assessment of their NIST SP 800-171 implementation, score themselves, and post that score to SPRS before they can receive a contract award.","key_facts":["Requires NIST 800-171 self-assessment","Score must be posted to SPRS before contract award","SPRS = Supplier Performance Risk System","Partial solution to the verification problem"]},{"id":"dfars7020","label":"DFARS 252.204-7020","full_name":"Defense Federal Acquisition Regulation Supplement Clause 252.204-7020","position":6,"connects_to":"dfars7021","description":"Gives DoD the right to conduct or commission a medium or high confidence assessment to verify that a contractor\u2019s SPRS score is accurate. Works alongside 7019.","key_facts":["DoD can verify your SPRS score","Enables medium or high confidence assessments","Works alongside 7019 to address the verification gap","Contractor cannot refuse a government verification assessment"]},{"id":"dfars7021","label":"DFARS 252.204-7021","full_name":"Defense Federal Acquisition Regulation Supplement Clause 252.204-7021","position":7,"connects_to":"32cfr170","description":"The CMMC clause. Requires contractors to hold the appropriate CMMC certification level as a condition of contract award. Level 1 = self-assessment, most Level 2 = C3PAO, Level 3 = DIBCAC.","key_facts":["Makes CMMC certification a contract requirement","Level 1: self-assessment","Level 2: C3PAO third-party assessment (most programs)","Level 3: DIBCAC assessment","No certification = no contract award"]},{"id":"32cfr170","label":"32 CFR Part 170","full_name":"Title 32 CFR Part 170 \u2014 CMMC Final Rule","position":8,"connects_to":"nist800171","description":"The federal regulation that formally establishes the CMMC program and makes it legally enforceable. The authoritative legal source for the CMMC program itself. Defines the three levels, roles, timeline, and POA&M allowances.","key_facts":["Legally defines the entire CMMC program","Authoritative source for CMMC program structure","Establishes 9-24 month implementation timeline","Allows POA&M for conditional certification","DFARS 7021 says \u2018be certified\u2019 \u2014 32 CFR Part 170 defines what certified means"]},{"id":"nist800171","label":"NIST SP 800-171 Rev 2","full_name":"NIST Special Publication 800-171 Revision 2","position":9,"connects_to":null,"description":"The technical foundation everything else is built on. Defines 110 security requirements across 14 domains for protecting CUI on non-federal systems. Tailored from NIST SP 800-53 moderate baseline. Rev 2 is used for CMMC \u2014 not Rev 3.","key_facts":["110 security requirements across 14 domains","Protects CUI on non-federal (contractor) systems","Tailored from NIST 800-53 moderate baseline","Rev 2 is used for CMMC \u2014 not Rev 3","Level 2 CMMC = implementing all 110 controls"]}],"flashcards":[{"id":"d3_001","question":"What problem did EO 13556 solve?","answer":"Inconsistent labeling and handling of sensitive unclassified information across federal agencies."},{"id":"d3_002","question":"Who is the Executive Agent for CUI in the Executive Branch?","answer":"NARA \u2014 the National Archives and Records Administration, designated by EO 13556."},{"id":"d3_003","question":"What is the relationship between EO 13556 and 32 CFR Part 2002?","answer":"EO 13556 directed that an implementing regulation be written. 32 CFR Part 2002 is that regulation."},{"id":"d3_004","question":"What does DFARS 252.204-7012 require?","answer":"Contractors must implement NIST SP 800-171, report cyber incidents to DoD within 72 hours, and maintain a medium assurance certificate."},{"id":"d3_005","question":"What is SPRS and which DFARS clause requires posting a score there?","answer":"SPRS is the Supplier Performance Risk System. DFARS 252.204-7019 requires contractors to post their NIST 800-171 self-assessment score before contract award."},{"id":"d3_006","question":"What is the difference between DFARS 7019 and 7020?","answer":"7019 requires the contractor to self-assess and post their score to SPRS. 7020 gives DoD the right to verify that score is accurate."},{"id":"d3_007","question":"What does DFARS 252.204-7021 require?","answer":"Contractors must hold the appropriate CMMC certification level as a condition of contract award."},{"id":"d3_008","question":"What is 32 CFR Part 170?","answer":"The federal regulation that formally establishes and legally defines the CMMC program."},{"id":"d3_009","question":"How was NIST SP 800-171 derived from NIST SP 800-53?","answer":"Tailored down by removing controls that were: federal government responsibilities only, focused on federal systems, not related to CUI confidentiality, or expected to be satisfied without being specified."},{"id":"d3_010","question":"Which version of NIST 800-171 is used for CMMC assessments?","answer":"Rev 2. Not Rev 3."},{"id":"d3_011","question":"What is FCI and where is it defined?","answer":"Federal Contract Information \u2014 defined in FAR 52.204-21. Protected by CMMC Level 1."},{"id":"d3_012","question":"What is the difference between CUI Basic and CUI Specified?","answer":"CUI Basic follows standard handling requirements from 32 CFR Part 2002. CUI Specified has additional or different requirements defined by the specific authorizing law or regulation."},{"id":"d3_013","question":"What is the difference between the Assessment Guide and the CAP?","answer":"The Assessment Guide is the WHAT \u2014 defines each practice and how to evaluate it. The CAP is the HOW \u2014 defines the four phases of running an assessment."},{"id":"d3_014","question":"What is the Civil Cyber-Fraud Initiative?","answer":"A DoJ initiative to pursue contractors who misrepresent cybersecurity compliance to obtain government contracts. Penalties include up to triple damages under the False Claims Act."},{"id":"d3_015","question":"What are the three consequences of CMMC non-compliance?","answer":"1. Failure to receive contract award. 2. Contractual liability / contract termination. 3. False Claims Act liability via the DoJ Civil Cyber-Fraud Initiative."},{"id":"d3_016","question":"Why was DFARS 7021 necessary even after 7019 and 7020 existed?","answer":"7019 and 7020 still relied on contractor self-assessment as the baseline. 7021 replaced self-reporting with formal third-party certification for higher-risk programs."},{"id":"d3_017","question":"Who administers the ISOO CUI Registry?","answer":"NARA \u2014 the National Archives and Records Administration."},{"id":"d3_018","question":"What are the 8 CMMC source documents?","answer":"1. CMMC Model Overview 2. Level 1 Assessment Guide 3. Level 2 Assessment Guide 4. Level 1 Scoping Guidance 5. Level 2 Scoping Guidance 6. CMMC Assessment Process (CAP) 7. CMMC Glossary 8. CMMC Artifact Hashing Tool User Guide"},{"id":"d3_019","question":"Why would you hash assessment evidence?","answer":"Hashing creates a cryptographic fingerprint at the time of collection. It ensures integrity \u2014 proves evidence was not altered after the assessment."},{"id":"d3_020","question":"What is the hierarchical relationship between EO 13556, 32 CFR Part 2002, and DoDI 5200.48?","answer":"EO 13556 created the CUI program. 32 CFR Part 2002 is the government-wide implementing regulation. DoDI 5200.48 is DoD\u2019s internal implementation. Each is subordinate to the one above."}]};
+
+DOMAINS[4] = {"domain":4,"title":"CMMC Model Construct \u2014 Level 1 Practices","exam_weight":"35%","level1_practices":[{"id":"AC.L1-b.1.i","domain":"Access Control (AC)","name":"Authorized Access Control","requirement":"Limit information system access to authorized users, processes acting on behalf of authorized users, or devices (including other information systems).","plain_terms":"Only authorized users, processes, and devices can access the system.","key_principle":"Control WHO gets in","assessment_objectives":["authorized users are identified","processes acting on behalf of authorized users are identified","devices authorized to connect are identified","system access is limited to authorized users","system access is limited to authorized processes","system access is limited to authorized devices"],"evidence_examples":["User account lists","Access control policies","Records of terminated employee account removal","List of authorized devices"]},{"id":"AC.L1-b.1.ii","domain":"Access Control (AC)","name":"Transaction and Function Control","requirement":"Limit information system access to the types of transactions and functions that authorized users are permitted to execute.","plain_terms":"Once you\u2019re in, what you can DO is also limited. Least privilege.","key_principle":"Control WHAT authorized users can do","assessment_objectives":["types of transactions and functions authorized users are permitted to execute are defined","system access is limited to defined types of transactions and functions"],"evidence_examples":["Role-based access configurations","User permission settings","Access control lists","Admin privilege documentation"]},{"id":"AC.L1-b.1.iii","domain":"Access Control (AC)","name":"External Connections","requirement":"Verify and control/limit connections to and use of external information systems.","plain_terms":"Know what external connections exist, verify they\u2019re authorized, and control/limit them.","key_principle":"Control external CONNECTIONS","assessment_objectives":["connections to external systems are identified","use of external systems is identified","connections to external systems are verified","use of external systems is verified","connections to external systems are controlled/limited","use of external systems is controlled/limited"],"evidence_examples":["Network diagrams showing external connections","Firewall rules","Documented agreements with external system owners","VPN configurations"]},{"id":"AC.L1-b.1.iv","domain":"Access Control (AC)","name":"Control Public Information","requirement":"Control information posted or processed on publicly accessible information systems.","plain_terms":"Controls to ensure FCI doesn\u2019t end up on public-facing systems.","key_principle":"Prevent FCI on PUBLIC systems","assessment_objectives":["individuals authorized to post on publicly accessible systems are identified","procedures to ensure FCI is not posted on publicly accessible systems are identified","a review process is in place prior to posting content","content is reviewed to ensure it does not include FCI","mechanisms are in place to remove and address improper posting of FCI"],"evidence_examples":["List of users authorized to post publicly","Content review procedures","Documented approval chain for public release"]},{"id":"IA.L1-b.1.v","domain":"Identification and Authentication (IA)","name":"Identification","requirement":"Identify information system users, processes acting on behalf of users, or devices.","plain_terms":"Every user, process, and device needs a unique identifier. No shared accounts.","key_principle":"Claiming an identity","assessment_objectives":["system users are identified","processes acting on behalf of users are identified","devices accessing the system are identified"],"evidence_examples":["List of system accounts with unique user IDs","Device inventory with unique identifiers","Service account documentation"]},{"id":"IA.L1-b.1.vi","domain":"Identification and Authentication (IA)","name":"Authentication","requirement":"Authenticate the identities of those users, processes, or devices as a prerequisite to allowing access.","plain_terms":"Prove who you are before getting access. Default credentials must be changed.","key_principle":"Proving an identity","assessment_objectives":["identity of each user is authenticated as a prerequisite to system access","identity of each process acting on behalf of a user is authenticated","identity of each device is authenticated as a prerequisite to system access"],"evidence_examples":["Authentication mechanisms in place","Password policies","No default credentials in use","Device certificates or tokens"]},{"id":"MP.L1-b.1.vii","domain":"Media Protection (MP)","name":"Media Disposal","requirement":"Sanitize or destroy information system media containing FCI before disposal or release for reuse.","plain_terms":"FCI media must be sanitized or destroyed before disposal or reuse.","key_principle":"FCI unrecoverable before media leaves control","assessment_objectives":["system media containing FCI is sanitized or destroyed before disposal","system media containing FCI is sanitized before it is released for reuse"],"evidence_examples":["Media sanitization records","Destruction logs","Media sanitization policy","Certificates of destruction"]},{"id":"PE.L1-b.1.viii","domain":"Physical Protection (PE)","name":"Limit Physical Access","requirement":"Limit physical access to organizational information systems, equipment, and operating environments to authorized individuals.","plain_terms":"Only authorized people can physically access systems and spaces.","key_principle":"Control WHO can physically access systems","assessment_objectives":["authorized individuals allowed physical access are identified","physical access to organizational systems is limited to authorized individuals","physical access to equipment is limited to authorized individuals","physical access to operating environments is limited to authorized individuals"],"evidence_examples":["Authorized access lists","Badge/key card systems","Locked rooms for FCI systems"]},{"id":"PE.L1-b.1.ix","domain":"Physical Protection (PE)","name":"Manage Visitors and Physical Access","requirement":"Escort visitors and monitor visitor activity; maintain audit logs of physical access; and control and manage physical access devices.","plain_terms":"Escort visitors, log physical access, manage keys/badges.","key_principle":"Track and manage HOW physical access occurs","assessment_objectives":["visitors are escorted","visitor activity is monitored","audit logs of physical access are maintained","physical access devices are identified","physical access devices are controlled","physical access devices are managed"],"evidence_examples":["Visitor sign-in/sign-out logs","Badge reader records","Key inventory records","Visitor badge policy"]},{"id":"SC.L1-b.1.x","domain":"System and Communications Protection (SC)","name":"Boundary Protection","requirement":"Monitor, control, and protect organizational communications at the external boundaries and key internal boundaries of the information systems.","plain_terms":"Three actions (monitor, control, protect) at two locations (external and key internal boundaries).","key_principle":"Protect network perimeter and key internal boundaries","assessment_objectives":["external system boundary is defined","key internal system boundaries are defined","communications are monitored at the external boundary","communications are monitored at key internal boundaries","communications are controlled at the external boundary","communications are controlled at key internal boundaries","communications are protected at the external boundary","communications are protected at key internal boundaries"],"evidence_examples":["Network diagrams showing defined boundaries","Firewall configurations","Connection logs","Deny-by-default rule sets"]},{"id":"SC.L1-b.1.xi","domain":"System and Communications Protection (SC)","name":"Public-Access System Separation","requirement":"Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks.","plain_terms":"Public-facing systems must be on a separate network (DMZ) from internal FCI systems.","key_principle":"Isolate public systems from FCI systems","assessment_objectives":["publicly accessible system components are identified","subnetworks for publicly accessible components are physically or logically separated from internal networks"],"evidence_examples":["Network diagrams showing DMZ","VLAN configurations","Firewall rules blocking DMZ-to-internal traffic"]},{"id":"SI.L1-b.1.xii","domain":"System and Information Integrity (SI)","name":"Flaw Remediation","requirement":"Identify, report, and correct information system flaws in a timely manner.","plain_terms":"Patch management. Find flaws, report them, fix them \u2014 on a defined schedule.","key_principle":"Find, report, fix flaws on schedule","assessment_objectives":["time within which to identify system flaws is specified","system flaws are identified within the specified time frame","time within which to report system flaws is specified","system flaws are reported within the specified time frame","time within which to correct system flaws is specified","system flaws are corrected within the specified time frame"],"evidence_examples":["Patch management policy with defined timeframes","List of installed patches and update history","Vulnerability scan results"]},{"id":"SI.L1-b.1.xiii","domain":"System and Information Integrity (SI)","name":"Malicious Code Protection","requirement":"Provide protection from malicious code at appropriate locations within organizational information systems.","plain_terms":"Deploy anti-malware protection at designated locations.","key_principle":"Deploy malware protection at the right places","assessment_objectives":["designated locations for malicious code protection are identified","protection from malicious code at designated locations is provided"],"evidence_examples":["Anti-malware software deployed on identified systems","List of protected system components","Anti-malware configuration documentation"]},{"id":"SI.L1-b.1.xiv","domain":"System and Information Integrity (SI)","name":"Update Malicious Code Protection","requirement":"Update malicious code protection mechanisms when new releases are available.","plain_terms":"Keep your antivirus definitions current. Configure automatic updates.","key_principle":"Keep malware protection up to date","assessment_objectives":["malicious code protection mechanisms are updated when new releases are available"],"evidence_examples":["Auto-update configuration for anti-malware","Records of malicious code protection updates"]},{"id":"SI.L1-b.1.xv","domain":"System and Information Integrity (SI)","name":"System and File Scanning","requirement":"Perform periodic scans of the information system and real-time scans of files from external sources as files are downloaded, opened, or executed.","plain_terms":"Periodic full system scans + real-time scans of files from external sources.","key_principle":"Actively scan for malware on schedule and in real time","assessment_objectives":["frequency for malicious code scans is defined","malicious code scans are performed with the defined frequency","real-time malicious code scans of files from external sources are performed as files are downloaded, opened, or executed"],"evidence_examples":["Anti-malware scan schedule configuration","Scan logs showing periodic scans","Real-time scan configuration"]}],"flashcards":[{"id":"d4_001","question":"How many Level 1 practices are there and what is their source document?","answer":"15 practices, derived from FAR Clause 52.204-21."},{"id":"d4_002","question":"What does Level 1 protect \u2014 FCI or CUI?","answer":"FCI \u2014 Federal Contract Information. CUI is protected at Level 2."},{"id":"d4_003","question":"What are the three assessment methods and what does each tell you?","answer":"Examine = what documentation says is happening. Interview = what people believe is happening. Test = what is actually happening."},{"id":"d4_004","question":"What happens if one assessment objective within a practice is NOT MET?","answer":"The entire practice is scored NOT MET. No partial credit."},{"id":"d4_005","question":"Can a draft policy be used as evidence for a MET finding?","answer":"No. Evidence must be in final form. Drafts, working papers, and unapproved policies do not count."},{"id":"d4_006","question":"How does NOT APPLICABLE score in a CMMC assessment?","answer":"Equivalent to MET for scoring purposes. Must be documented with an explanation."},{"id":"d4_007","question":"What is the difference between AC.L1-b.1.i and AC.L1-b.1.ii?","answer":"b.1.i controls WHO gets access. b.1.ii controls WHAT authorized users can do once inside."},{"id":"d4_008","question":"What is the difference between Identification and Authentication?","answer":"Identification is claiming an identity (username). Authentication is proving it (password/credential)."},{"id":"d4_009","question":"Why are default credentials a significant security risk?","answer":"Default credentials are often publicly documented by manufacturers \u2014 attackers can look them up."},{"id":"d4_010","question":"What types of media does MP.L1-b.1.vii apply to?","answer":"All media digital and non-digital: paper, USB drives, CDs, DVDs, hard drives, mobile phones."},{"id":"d4_011","question":"What is the difference between sanitizing and destroying media?","answer":"Sanitizing removes FCI while preserving the media for reuse. Destroying physically destroys the media."},{"id":"d4_012","question":"What is the visitor escort rule under PE.L1-b.1.ix?","answer":"All visitors must be escorted at all times \u2014 no exceptions, even for people you know personally."},{"id":"d4_013","question":"What three things does PE.L1-b.1.ix require?","answer":"1. Escort visitors and monitor activity. 2. Maintain audit logs of physical access. 3. Control and manage physical access devices."},{"id":"d4_014","question":"What is the difference between SC.L1-b.1.x and SC.L1-b.1.xi?","answer":"b.1.x protects all network boundaries. b.1.xi specifically requires public-facing systems in a separate subnetwork (DMZ)."},{"id":"d4_015","question":"What is a DMZ and when is SC.L1-b.1.xi N/A?","answer":"A DMZ is a subnetwork separated from internal networks. b.1.xi is N/A if no publicly accessible systems exist within scope."},{"id":"d4_016","question":"What three actions does SI.L1-b.1.xii require?","answer":"Identify, report, and correct system flaws. Each must happen within organization-defined timeframes."},{"id":"d4_017","question":"What are the four types of malicious code listed in the Level 1 Assessment Guide?","answer":"Virus, Spyware, Trojan Horse, Ransomware."},{"id":"d4_018","question":"What is the difference between SI.L1-b.1.xiii, b.1.xiv, and b.1.xv?","answer":"b.1.xiii = deploy protection. b.1.xiv = keep it updated. b.1.xv = actively use it to scan."},{"id":"d4_019","question":"What two types of scanning does SI.L1-b.1.xv require?","answer":"Periodic scans of the whole system on a defined schedule, AND real-time scans of files from external sources."},{"id":"d4_020","question":"Which Level 1 domain has the most practices?","answer":"AC (Access Control) and SI (System and Information Integrity) both have 4 practices."},{"id":"d4_021","question":"What does AC.L1-b.1.iii require regarding external connections?","answer":"Verify and control/limit connections to and use of external systems. Includes cloud services and personal devices."},{"id":"d4_022","question":"What does AC.L1-b.1.iv require?","answer":"Controls on information posted on publicly accessible systems \u2014 designated individuals, review process, mechanisms to remove FCI if discovered."},{"id":"d4_023","question":"What is a Temporary Deficiency and how does it score?","answer":"A condition where remediation is feasible with a fix available or in process. Documented in operational plan of action with milestones. Scores as MET."},{"id":"d4_024","question":"What is an Enduring Exception and how does it score?","answer":"A special circumstance where full compliance is not feasible (medical devices, OT, IoT). Documented in system security plan. Scores as MET."}]};
+
+DOMAINS[5] = {"domain":5,"title":"CMMC Assessment Process (CAP)","exam_weight":"25%","flashcards":[{"id":"d5_001","question":"What are the four phases of the CMMC Assessment Process?","answer":"Phase 1: Plan and Prepare. Phase 2: Conduct Assessment. Phase 3: Report Results. Phase 4: POA&M Evaluation."},{"id":"d5_002","question":"What is the CCP\u2019s role across all four CAP phases?","answer":"The CCP assists. Always. Across all four phases the CCP supports the team but never leads and never makes independent scoring determinations."},{"id":"d5_003","question":"What is the difference between CCP, CCA, and Lead Assessor roles?","answer":"CCP assists. CCA assesses and makes scoring determinations. Lead Assessor leads, makes final scoring decisions, and submits the final report."},{"id":"d5_004","question":"What is the purpose of the Readiness Review in Phase 1?","answer":"To verify the OSC is actually prepared before the formal assessment begins. If not ready, the assessment does not proceed."},{"id":"d5_005","question":"What must be included in a CMMC Assessment Plan?","answer":"Assessment scope, practices being assessed, methodology, logistics, team roles, and evidence collection and handling approach."},{"id":"d5_006","question":"How are practices on a POA&M scored during Phase 2?","answer":"NOT MET. POA&M evaluation happens in Phase 4, not during the conduct phase."},{"id":"d5_007","question":"What is the assessment report submission chain?","answer":"Lead Assessor drafts findings \u2192 preliminary results to OSC \u2192 Lead Assessor submits to C3PAO and OSC \u2192 C3PAO reviews \u2192 results to SPRS."},{"id":"d5_008","question":"Why is assessment evidence archived and what role does hashing play?","answer":"Archived to support future questions. Hashing creates cryptographic fingerprints proving evidence was not altered."},{"id":"d5_009","question":"What three criteria determine whether a NOT MET practice qualifies for a POA&M?","answer":"1. OSC meets minimum score threshold. 2. The item is remediable. 3. POA&M includes specific milestones showing real progress."},{"id":"d5_010","question":"What is the difference between a POA&M and an operational plan of action?","answer":"POA&M is formal assessment-related. Operational plan of action is the OSC\u2019s internal document for managing temporary deficiencies outside formal assessment."},{"id":"d5_011","question":"What is conditional certification?","answer":"Allows an OSC to operate while remediating NOT MET practices rather than failing outright. A safety valve, not a loophole."},{"id":"d5_012","question":"At what two points does the OSC receive visibility into findings?","answer":"1. Preliminary results before the final report. 2. The final assessment report after submission."},{"id":"d5_013","question":"What makes a POA&M item non-qualifying?","answer":"If it\u2019s not remediable \u2014 a structural gap with no viable path to remediation. Vague milestones also disqualify."},{"id":"d5_014","question":"Who submits the final assessment report and to whom?","answer":"The Lead Assessor submits to both the C3PAO and the OSC. C3PAO reviews before results go to SPRS."},{"id":"d5_015","question":"What happens during Phase 2 evidence collection?","answer":"Evidence gathered using Examine, Interview, and Test methods. CCP assists \u2014 pulling docs, sitting in on interviews, observing demos. Cannot make independent scoring calls."}]};
+
+DOMAINS[6] = {"domain":6,"title":"CMMC Scoping","exam_weight":"15%","flashcards":[{"id":"d6_001","question":"What are the three organizational scoping levels in CMMC?","answer":"Organization (whole company), Host Unit (directly handles FCI/CUI), Supporting Units (support the host unit)."},{"id":"d6_002","question":"What is the three-verb test for determining if an asset is in scope?","answer":"If an asset processes, stores, or transmits FCI it is in scope. Any one verb is sufficient."},{"id":"d6_003","question":"What must happen when an asset is excluded from scope?","answer":"Exclusion must be documented with an explanation of why the asset doesn\u2019t process, store, or transmit FCI."},{"id":"d6_004","question":"What are the five specialized asset categories?","answer":"Government Furnished Equipment (GFE), IoT/IIoT, Operational Technology (OT), Restricted Information Systems, and Test Equipment."},{"id":"d6_005","question":"Why can\u2019t specialized assets be excluded from scope?","answer":"They exist in the environment and may touch FCI. However full compliance isn\u2019t always achievable, so they may qualify as Enduring Exceptions."},{"id":"d6_006","question":"What are the four scoping activity categories?","answer":"People, Technology, Facilities, and External Service Providers (ESPs)."},{"id":"d6_007","question":"Why is an ESP in scope if it handles FCI?","answer":"Security requirements follow the data. If FCI flows to an ESP, controls must follow. The OSC cannot outsource around compliance."},{"id":"d6_008","question":"What is the difference between a Host Unit and a Supporting Unit?","answer":"Host Unit directly handles FCI/CUI. Supporting Units support the Host Unit but don\u2019t directly handle FCI. Both are in scope."},{"id":"d6_009","question":"What types of organizations qualify as ESPs?","answer":"Cloud service providers, managed service providers, managed security service providers, cybersecurity-as-a-service providers."},{"id":"d6_010","question":"Why does OT sometimes qualify as a specialized asset?","answer":"Manufacturing equipment may not support patching or standard security controls without disrupting operations, qualifying as Enduring Exceptions."}]};
+
+// ============================================================
+// DOMAIN WEIGHT MAP
+// ============================================================
+const DOMAIN_WEIGHTS = {1:5,2:5,3:15,4:35,5:25,6:15};
+const DOMAIN_COLORS = {1:'#a78bfa',2:'#f472b6',3:'#6c8aff',4:'#34d399',5:'#fbbf24',6:'#22d3ee'};
+
+// ============================================================
+// LOCALSTORAGE HELPERS
+// ============================================================
+function loadState(key,def){try{const v=localStorage.getItem('ccp_'+key);return v?JSON.parse(v):def}catch(e){return def}}
+function saveState(key,val){localStorage.setItem('ccp_'+key,JSON.stringify(val))}
+
+// ============================================================
+// VIEW MANAGEMENT
+// ============================================================
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('backBtn').style.display = id==='dashboard'?'none':'flex';
+  if(id==='regchain') renderRegChain();
+  if(id==='simulator') initSimulator();
+  if(id==='flashcards') initFlashcards();
+  if(id==='progress') renderProgress();
+  window.scrollTo(0,0);
+}
+function showDashboard(){showView('dashboard');renderQuickStats()}
+
+// ============================================================
+// QUICK STATS
+// ============================================================
+function renderQuickStats(){
+  const fc = loadState('flashcard_progress',{});
+  const sims = loadState('sim_history',[]);
+  const totalCards = Object.values(DOMAINS).reduce((s,d)=>s+d.flashcards.length,0);
+  const knownCards = Object.values(fc).filter(v=>v>=3).length;
+  const simCount = sims.length;
+  const bestScore = sims.length ? Math.max(...sims.map(s=>s.score)) : 0;
+  document.getElementById('quickStats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${totalCards}</div><div class="stat-label">Total Flashcards</div></div>
+    <div class="stat-card"><div class="stat-val">${knownCards}</div><div class="stat-label">Cards Mastered</div></div>
+    <div class="stat-card"><div class="stat-val">${simCount}</div><div class="stat-label">Assessments Done</div></div>
+    <div class="stat-card"><div class="stat-val">${bestScore}%</div><div class="stat-label">Best Sim Score</div></div>
+  `;
+}
+
+// ============================================================
+// MODE 1: REGULATORY CHAIN EXPLORER
+// ============================================================
+let regActiveNode = null;
+function renderRegChain(){
+  const chain = DOMAINS[3].regulatory_chain;
+  const container = document.getElementById('regChainContainer');
+  container.innerHTML = '';
+  chain.forEach((node,i)=>{
+    const div = document.createElement('div');
+    div.className = 'reg-node' + (regActiveNode===node.id?' active':'');
+    div.innerHTML = `<div class="node-label">${node.label}</div><div class="node-name">${node.full_name}</div>`;
+    div.onclick = ()=>selectRegNode(node);
+    container.appendChild(div);
+    if(i<chain.length-1){
+      const conn = document.createElement('div');
+      conn.className = 'reg-connector';
+      container.appendChild(conn);
+    }
+  });
+}
+function selectRegNode(node){
+  regActiveNode = node.id;
+  renderRegChain();
+  // Find associated flashcard
+  const fc = DOMAINS[3].flashcards.find(f=>{
+    const q = f.question.toLowerCase();
+    const label = node.label.toLowerCase();
+    return q.includes(label) || q.includes(node.id);
+  }) || DOMAINS[3].flashcards[Math.floor(Math.random()*DOMAINS[3].flashcards.length)];
+
+  const detail = document.getElementById('regDetail');
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <div class="reg-detail">
+      <h3>${node.label} &mdash; ${node.full_name}</h3>
+      <p>${node.description}</p>
+      <ul class="key-facts">${node.key_facts.map(f=>`<li>${f}</li>`).join('')}</ul>
+      <div class="quiz-box">
+        <h4>Quiz Yourself</h4>
+        <p>${fc.question}</p>
+        <button class="btn btn-ghost btn-sm" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">Reveal Answer</button>
+        <div class="quiz-answer">${fc.answer}</div>
+      </div>
+    </div>
+  `;
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ============================================================
+// MODE 2: ASSESSMENT SIMULATOR
+// ============================================================
+const SCENARIOS = [
+  {name:"Apex Defense Solutions",size:"45 employees",description:"A small defense subcontractor that manufactures precision components for military vehicle systems. They have a single office/manufacturing facility with a shared IT environment. They use a cloud-based ERP system, have a small server room, and employees use company-issued laptops. They recently won a DoD subcontract that involves handling FCI. Their IT is managed by a 3-person internal team. They have basic security policies but have never undergone a formal CMMC assessment.",details:["Single building with manufacturing floor and offices","3-person IT team managing all systems","Cloud ERP system (hosted by third-party provider)","Company-issued laptops for all office staff","Small server room with badge access","Public-facing website for marketing","Visitor lobby with sign-in sheet","No formal patch management schedule documented","Anti-malware installed on workstations but auto-updates disabled on some machines","Shared admin account used by IT team for server maintenance","USB drives used to transfer files from manufacturing floor","No DMZ \u2014 public website hosted on same network segment","Old hard drives stored in unlocked closet awaiting disposal","Firewall in place at network perimeter with default-allow outbound rules","VPN for two remote employees"]},
+  {name:"Coastal Cyber Works",size:"120 employees",description:"A mid-size IT services company providing managed security services to defense contractors. They handle FCI through their service desk and monitoring operations. Multiple office locations with a centralized data center. They have mature IT processes but discovered gaps during a recent internal review.",details:["Two office locations plus a collocated data center","Centralized Active Directory with role-based access","SIEM and SOC monitoring in place","Formal visitor management system with badge escorts","Content review process for public website but no designated approver list","All systems on a documented patch cycle (30-day critical, 90-day standard)","Anti-malware centrally managed with auto-updates enabled","Network segmented with DMZ for public services","Media destruction handled by certified third-party vendor with certificates","Default credentials on three newly deployed network switches","Device inventory maintained but not updated in 6 months","Two service accounts shared between SOC analysts","External connections documented but VPN split-tunneling enabled","Physical access logs maintained electronically via badge readers","Manufacturing test lab with IoT sensors on the main network"]},
+  {name:"Summit Aero Components",size:"28 employees",description:"A small aerospace parts manufacturer operating from a single facility. They machine precision components for a prime contractor and handle FCI related to part specifications and delivery schedules. Lean operation with most employees on the manufacturing floor.",details:["Single facility: machine shop, small office area, and a storage warehouse","IT managed by one part-time contractor who visits twice a week","Six office workstations and two shared shop-floor terminals","Cloud-based email and file sharing (Microsoft 365)","No server room \u2014 all services cloud-hosted","Wi-Fi network shared between office and guest access","Perimeter firewall with basic configuration","Public website hosted by external provider (fully separated)","Paper visitor log at front desk, but visitors occasionally unescorted in office area","Anti-malware on office workstations; shop-floor terminals have none","No documented patch management process","USB drives used to load CNC machine programs","Old laptops in a drawer \u2014 never wiped, no longer in use","Unique user accounts for each employee","Password policy requires 8 characters, no complexity requirements","Physical access: front door key held by all employees, no badge system for internal areas"]}
+];
+
+let simState = null;
+function initSimulator(){
+  simState = loadState('sim_current',null);
+  if(!simState || simState.completed){
+    startNewSim();
+  } else {
+    renderSimulator();
+  }
+}
+function startNewSim(){
+  const scenario = SCENARIOS[Math.floor(Math.random()*SCENARIOS.length)];
+  simState = {scenario,currentIdx:0,answers:{},completed:false};
+  saveState('sim_current',simState);
+  renderSimulator();
+}
+function renderSimulator(){
+  const practices = DOMAINS[4].level1_practices;
+  const s = simState;
+  // scenario
+  document.getElementById('simScenario').innerHTML = `
+    <div class="scenario-box">
+      <h3>${s.scenario.name} <span style="color:var(--text3);font-weight:400;font-size:.85rem">(${s.scenario.size})</span></h3>
+      <p>${s.scenario.description}</p>
+      <ul style="margin-top:12px;padding-left:20px">${s.scenario.details.map(d=>`<li style="color:var(--text2);font-size:.83rem;margin-bottom:4px">${d}</li>`).join('')}</ul>
+    </div>
+  `;
+  document.getElementById('simResults').style.display = 'none';
+  document.getElementById('simPractices').style.display = 'block';
+
+  if(s.completed){
+    showSimResults();
+    return;
+  }
+
+  const answered = Object.keys(s.answers).length;
+  document.getElementById('simProgress').style.width = (answered/practices.length*100)+'%';
+  document.getElementById('simProgressText').textContent = `Practice ${answered} of ${practices.length} evaluated`;
+
+  const p = practices[s.currentIdx];
+  document.getElementById('simPractices').innerHTML = `
+    <div class="practice-card">
+      <div class="practice-id">${p.id} &mdash; ${p.domain}</div>
+      <h4>${p.name}</h4>
+      <p class="requirement">${p.requirement}</p>
+      <p style="font-size:.82rem;color:var(--cyan);margin-bottom:12px"><strong>Key Principle:</strong> ${p.key_principle}</p>
+      <p style="font-size:.8rem;color:var(--text3);margin-bottom:8px">Assessment Objectives:</p>
+      <ul class="objectives">${p.assessment_objectives.map(o=>`<li>${o}</li>`).join('')}</ul>
+      <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Your evaluation:</p>
+      <div class="scoring-btns">
+        <button class="btn btn-ghost ${s.answers[p.id]?.score==='MET'?'selected-met':''}" onclick="simScore('${p.id}','MET',this)">MET</button>
+        <button class="btn btn-ghost ${s.answers[p.id]?.score==='NOT MET'?'selected-notmet':''}" onclick="simScore('${p.id}','NOT MET',this)">NOT MET</button>
+        <button class="btn btn-ghost ${s.answers[p.id]?.score==='N/A'?'selected-na':''}" onclick="simScore('${p.id}','N/A',this)">N/A</button>
+      </div>
+      <textarea class="justification-input" placeholder="Justify your finding based on the scenario details..." id="simJustification">${s.answers[p.id]?.justification||''}</textarea>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn btn-ghost btn-sm" onclick="simPrev()" ${s.currentIdx===0?'disabled style="opacity:.3"':''}>&#8592; Previous</button>
+        <button class="btn btn-primary btn-sm" onclick="simNext()" id="simNextBtn">${s.currentIdx===practices.length-1?'Finish Assessment':'Next &#8594;'}</button>
+      </div>
+    </div>
+  `;
+}
+function simScore(pid,score,btn){
+  if(!simState.answers[pid]) simState.answers[pid]={};
+  simState.answers[pid].score = score;
+  saveState('sim_current',simState);
+  renderSimulator();
+}
+function simPrev(){
+  const j = document.getElementById('simJustification');
+  if(j){
+    const pid = DOMAINS[4].level1_practices[simState.currentIdx].id;
+    if(!simState.answers[pid]) simState.answers[pid]={};
+    simState.answers[pid].justification = j.value;
+  }
+  if(simState.currentIdx>0) simState.currentIdx--;
+  saveState('sim_current',simState);
+  renderSimulator();
+}
+function simNext(){
+  const practices = DOMAINS[4].level1_practices;
+  const pid = practices[simState.currentIdx].id;
+  const j = document.getElementById('simJustification');
+  if(!simState.answers[pid]||!simState.answers[pid].score){
+    alert('Please select MET, NOT MET, or N/A before proceeding.');
+    return;
+  }
+  if(j) simState.answers[pid].justification = j.value;
+  if(simState.currentIdx < practices.length-1){
+    simState.currentIdx++;
+  } else {
+    simState.completed = true;
+    // Save to history
+    const met = Object.values(simState.answers).filter(a=>a.score==='MET'||a.score==='N/A').length;
+    const total = practices.length;
+    const score = Math.round(met/total*100);
+    const history = loadState('sim_history',[]);
+    history.push({date:new Date().toISOString(),scenario:simState.scenario.name,score,met,total});
+    saveState('sim_history',history);
+  }
+  saveState('sim_current',simState);
+  renderSimulator();
+}
+function showSimResults(){
+  document.getElementById('simPractices').style.display='none';
+  document.getElementById('simProgress').style.width='100%';
+  document.getElementById('simProgressText').textContent='Assessment Complete';
+  const practices = DOMAINS[4].level1_practices;
+  const answers = simState.answers;
+  const met = Object.values(answers).filter(a=>a.score==='MET'||a.score==='N/A').length;
+  const total = practices.length;
+  const score = Math.round(met/total*100);
+  const scoreColor = score>=80?'var(--green)':score>=60?'var(--orange)':'var(--red)';
+
+  let html = `<div class="results-summary">
+    <h3>Assessment Results: <span style="color:${scoreColor}">${score}%</span> (${met}/${total} MET or N/A)</h3>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:20px">Scenario: ${simState.scenario.name}</p>`;
+  practices.forEach(p=>{
+    const a = answers[p.id]||{score:'?',justification:''};
+    const cls = a.score==='MET'?'met':a.score==='N/A'?'na':'notmet';
+    html += `<div class="result-item">
+      <span class="result-badge ${cls}">${a.score}</span>
+      <div>
+        <strong style="font-size:.85rem">${p.id} \u2014 ${p.name}</strong>
+        <p style="font-size:.8rem;color:var(--text2);margin-top:4px">${p.plain_terms}</p>
+        ${a.justification?`<p style="font-size:.78rem;color:var(--text3);margin-top:4px;font-style:italic">Your justification: ${a.justification}</p>`:''}
+      </div>
+    </div>`;
+  });
+  html += `<div style="margin-top:20px"><button class="btn btn-primary" onclick="startNewSim()">New Assessment</button></div></div>`;
+  document.getElementById('simResults').innerHTML = html;
+  document.getElementById('simResults').style.display = 'block';
+}
+
+// ============================================================
+// MODE 3: FLASHCARD GAUNTLET
+// ============================================================
+let fcDeck = [];
+let fcIndex = 0;
+let fcFlipped = false;
+let fcKnownCount = 0;
+let fcUnknownCount = 0;
+let fcStreak = 0;
+let fcSessionDomain = 'all';
+
+function getAllFlashcards(){
+  let cards = [];
+  for(const [dNum,data] of Object.entries(DOMAINS)){
+    data.flashcards.forEach(fc=>{
+      cards.push({...fc, domain: parseInt(dNum), domainTitle: data.title, weight: DOMAIN_WEIGHTS[dNum]});
+    });
+  }
+  return cards;
+}
+
+function buildWeightedDeck(cards){
+  // Weight by domain exam percentage — higher weight domains appear more often
+  let deck = [];
+  cards.forEach(c=>{
+    // Normalize: domain 4 (35%) gets 7 copies, domain 1 (5%) gets 1 copy
+    const copies = Math.max(1, Math.round(c.weight / 5));
+    for(let i=0;i<copies;i++) deck.push(c);
+  });
+  // Also boost unknown cards
+  const progress = loadState('flashcard_progress',{});
+  deck.forEach(c=>{
+    const mastery = progress[c.id]||0;
+    if(mastery < 0){
+      // Extra copies for unknown cards
+      for(let i=0;i<2;i++) deck.push(c);
+    }
+  });
+  // Shuffle
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
+  // Dedupe consecutive same cards
+  const seen = new Set();
+  const final = [];
+  for(const c of deck){
+    if(!seen.has(c.id)){
+      final.push(c);
+      seen.add(c.id);
+    }
+  }
+  return final;
+}
+
+function initFlashcards(){
+  fcSessionDomain = document.getElementById('fcDomainFilter').value;
+  let allCards = getAllFlashcards();
+  if(fcSessionDomain!=='all') allCards = allCards.filter(c=>c.domain===parseInt(fcSessionDomain));
+  fcDeck = buildWeightedDeck(allCards);
+  fcIndex = 0; fcFlipped = false; fcKnownCount = 0; fcUnknownCount = 0; fcStreak = 0;
+  document.getElementById('fcComplete').style.display='none';
+  renderFlashcard();
+}
+function filterFlashcards(){initFlashcards()}
+function resetFlashcards(){
+  saveState('flashcard_progress',{});
+  initFlashcards();
+}
+
+function renderFlashcard(){
+  if(fcIndex>=fcDeck.length){
+    document.getElementById('fcCard').innerHTML='';
+    document.getElementById('fcActions').style.display='none';
+    document.getElementById('fcComplete').style.display='block';
+    renderWeakList();
+    return;
+  }
+  const c = fcDeck[fcIndex];
+  fcFlipped = false;
+  document.getElementById('fcActions').style.display='flex';
+  document.getElementById('fcRemaining').textContent = fcDeck.length - fcIndex;
+  document.getElementById('fcKnown').textContent = fcKnownCount;
+  document.getElementById('fcUnknown').textContent = fcUnknownCount;
+  document.getElementById('fcStreak').textContent = fcStreak;
+  document.getElementById('fcCard').innerHTML = `
+    <div class="flashcard" onclick="flipFlashcard()">
+      <span class="fc-domain" style="color:${DOMAIN_COLORS[c.domain]}">Domain ${c.domain}</span>
+      <span class="fc-num">${fcIndex+1}/${fcDeck.length}</span>
+      <div class="fc-question">${c.question}</div>
+      <div class="fc-answer">${c.answer}</div>
+      <div class="fc-hint">Click to reveal answer</div>
+    </div>
+  `;
+}
+function flipFlashcard(){
+  fcFlipped = true;
+  const card = document.querySelector('.flashcard');
+  if(!card) return;
+  card.querySelector('.fc-question').style.display='none';
+  card.querySelector('.fc-answer').style.display='block';
+  card.querySelector('.fc-hint').textContent='Mark your confidence below';
+}
+function markFlashcard(known){
+  const c = fcDeck[fcIndex];
+  const progress = loadState('flashcard_progress',{});
+  if(!progress[c.id]) progress[c.id]=0;
+  if(known){
+    progress[c.id] = Math.min(5, progress[c.id]+1);
+    fcKnownCount++;
+    fcStreak++;
+  } else {
+    progress[c.id] = Math.max(-3, progress[c.id]-1);
+    fcUnknownCount++;
+    fcStreak = 0;
+    // Re-insert card later in deck
+    const reinsert = Math.min(fcIndex + 5 + Math.floor(Math.random()*5), fcDeck.length);
+    fcDeck.splice(reinsert, 0, c);
+  }
+  saveState('flashcard_progress',progress);
+  // Save domain-level progress
+  const domProg = loadState('domain_fc_progress',{});
+  if(!domProg[c.domain]) domProg[c.domain]={seen:0,known:0};
+  domProg[c.domain].seen++;
+  if(known) domProg[c.domain].known++;
+  saveState('domain_fc_progress',domProg);
+
+  fcIndex++;
+  renderFlashcard();
+}
+function renderWeakList(){
+  const progress = loadState('flashcard_progress',{});
+  const allCards = getAllFlashcards();
+  const weak = allCards.filter(c=>(progress[c.id]||0)<1).sort((a,b)=>(progress[a.id]||0)-(progress[b.id]||0));
+  const el = document.getElementById('fcWeakList');
+  if(!weak.length){
+    el.innerHTML='<p style="color:var(--green)">All cards mastered! Great work.</p>';
+    return;
+  }
+  el.innerHTML = '<h4 style="margin-bottom:12px;color:var(--red)">Weak Spots ('+weak.length+' cards)</h4>' +
+    weak.slice(0,15).map(c=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">
+      <span style="font-size:.7rem;color:${DOMAIN_COLORS[c.domain]}">D${c.domain}</span>
+      <p style="font-size:.85rem;margin-top:4px">${c.question}</p>
+    </div>`).join('');
+}
+
+// ============================================================
+// MODE 4: PROGRESS TRACKER
+// ============================================================
+function renderProgress(){
+  const fcProgress = loadState('flashcard_progress',{});
+  const allCards = getAllFlashcards();
+  const grid = document.getElementById('domainProgressGrid');
+  let html = '';
+  for(let d=1;d<=6;d++){
+    const domCards = allCards.filter(c=>c.domain===d);
+    const mastered = domCards.filter(c=>(fcProgress[c.id]||0)>=3).length;
+    const seen = domCards.filter(c=>fcProgress[c.id]!==undefined).length;
+    const pct = domCards.length ? Math.round(mastered/domCards.length*100) : 0;
+    const color = DOMAIN_COLORS[d];
+    html += `<div class="domain-prog-card">
+      <h4 style="color:${color}">Domain ${d}: ${DOMAINS[d].title}</h4>
+      <div class="weight">Exam Weight: ${DOMAINS[d].exam_weight} &middot; ${domCards.length} flashcards</div>
+      <div class="prog-bar"><div class="prog-bar-inner" style="width:${pct}%;background:${color}"></div></div>
+      <div class="prog-stats">
+        <span>Mastered: ${mastered}/${domCards.length}</span>
+        <span>Seen: ${seen}/${domCards.length}</span>
+        <span>${pct}%</span>
+      </div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+
+  // Sim history
+  const history = loadState('sim_history',[]);
+  const histEl = document.getElementById('simHistory');
+  if(!history.length){
+    histEl.innerHTML='<div class="empty-state"><p>No assessment simulations completed yet.</p></div>';
+    return;
+  }
+  histEl.innerHTML = history.slice().reverse().map(h=>{
+    const d = new Date(h.date);
+    const dateStr = d.toLocaleDateString()+' '+d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const color = h.score>=80?'var(--green)':h.score>=60?'var(--orange)':'var(--red)';
+    return `<div class="history-item">
+      <div><strong>${h.scenario}</strong><br><span class="date">${dateStr}</span></div>
+      <div class="score" style="color:${color}">${h.score}% (${h.met}/${h.total})</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderQuickStats();
+</script>
+</body>
+</html>
